@@ -1,0 +1,262 @@
+<template>
+  <div class="overflow-hidden">
+    <n-card title="FBA已接收库存" :bordered="false" class="h-full rounded-8px shadow-sm">
+      <div class="searchPannel">
+        <linkageSearch style="width: 220px"></linkageSearch>
+        <inputGroup style="width: 320px; margin-left: 15px"></inputGroup>
+        <onlySelect style="width: 180px; margin-left: 15px" show-titles="变更原因" :nav-list="changeList"></onlySelect>
+        <!-- <onlySelect
+          style="width: 220px; margin-left: 15px"
+          show-titles="库存属性"
+          :nav-list="attributeList"
+        ></onlySelect> -->
+        <dateSearch style="width: 500px; margin-left: 15px"></dateSearch>
+        <n-button strong secondary round type="info" style="margin-left: 15px" size="medium">重置</n-button>
+      </div>
+      <div class="flex-col h-full" style="height: 625px">
+        <n-space class="pb-12px" justify="space-between">
+          <n-space>
+            <n-button type="success" size="small">
+              <icon-uil:export class="mr-4px text-16px" />
+              导出报表
+            </n-button>
+          </n-space>
+          <n-space align="center" :size="18">
+            <n-button size="small" type="primary" @click="getTableData">
+              <icon-mdi-refresh class="mr-4px text-16px" :class="{ 'animate-spin': loading }" />
+              刷新
+            </n-button>
+            <column-setting v-model:columns="columns" />
+          </n-space>
+        </n-space>
+        <n-data-table
+          :columns="columns"
+          :data="tableData"
+          :loading="loading"
+          :pagination="pagination"
+          :scroll-x="1800"
+          flex-height
+          class="flex-1-hidden"
+        />
+      </div>
+    </n-card>
+  </div>
+</template>
+
+<script setup lang="tsx">
+import { reactive, ref } from 'vue';
+import type { Ref } from 'vue';
+import { NButton, NSpace } from 'naive-ui';
+import type { DataTableColumns, PaginationProps } from 'naive-ui';
+import { fetchUserList } from '@/service';
+import { useLoading } from '@/hooks';
+import inputGroup from '@/components/table/input-group.vue';
+import ColumnSetting from '@/components/table/column-setting.vue';
+import linkageSearch from '@/components/table/linkage-search.vue';
+import onlySelect from '@/components/table/only-select.vue';
+import dateSearch from '@/components/table/date-search.vue';
+
+const { loading, startLoading, endLoading } = useLoading(false);
+
+const tableData = ref<UserManagement.User[]>([]);
+function setTableData(data: UserManagement.User[]) {
+  tableData.value = data;
+}
+
+async function getTableData() {
+  startLoading();
+  const { data } = await fetchUserList();
+  if (data) {
+    setTimeout(() => {
+      setTableData(data);
+      endLoading();
+    }, 1000);
+  }
+}
+
+interface ChangeList {
+  label: string;
+  value: string;
+}
+const changeList: ChangeList[] = [
+  {
+    label: '已残损',
+    value: '1'
+  },
+  {
+    label: '弃置库存',
+    value: '2'
+  },
+  {
+    label: '已找到',
+    value: '3'
+  },
+  {
+    label: '丢失',
+    value: '4'
+  },
+  {
+    label: '其他',
+    value: '5'
+  }
+];
+// const attributeList: ChangeList[] = [
+//   {
+//     label: '可售',
+//     value: '1'
+//   },
+//   {
+//     label: '存在瑕疵',
+//     value: '2'
+//   },
+//   {
+//     label: '因买家导致的残损',
+//     value: '3'
+//   },
+//   {
+//     label: '因分销导致的残损',
+//     value: '4'
+//   },
+//   {
+//     label: '已过期',
+//     value: '5'
+//   }
+// ];
+
+const columns: Ref<DataTableColumns<UserManagement.User>> = ref([
+  // {
+  //   type: 'selection',
+  //   align: 'center'
+  // },
+  {
+    key: 'index',
+    title: '序号',
+    align: 'center',
+    width: 80,
+    fixed: 'left'
+  },
+  {
+    key: 'userName',
+    title: '仓库',
+    align: 'center',
+    defaultSortOrder: 'ascend',
+    sorter: 'default',
+    resizable: true
+  },
+  {
+    key: 'age',
+    title: '产品名称/SKU',
+    align: 'center',
+    resizable: true
+  },
+  // {
+  //   key: 'gender',
+  //   title: '性别',
+  //   align: 'center',
+  //   render: row => {
+  //     if (row.gender) {
+  //       const tagTypes: Record<UserManagement.GenderKey, NaiveUI.ThemeColor> = {
+  //         '0': 'success',
+  //         '1': 'warning'
+  //       };
+
+  //       return <NTag type={tagTypes[row.gender]}>{genderLabels[row.gender]}</NTag>;
+  //     }
+
+  //     return <span></span>;
+  //   }
+  // },
+  {
+    key: 'phone',
+    title: 'FNSKU/MSKU',
+    align: 'center',
+    defaultSortOrder: 'ascend',
+    sorter: 'default',
+    resizable: true
+  },
+  {
+    key: 'email',
+    title: '申报数量',
+    align: 'center',
+    resizable: true
+  },
+  {
+    key: 'email',
+    title: '数量',
+    align: 'center',
+    defaultSortOrder: 'ascend',
+    sorter: 'default',
+    resizable: true
+  },
+  {
+    key: 'email',
+    title: '货件',
+    align: 'center',
+    resizable: true
+  },
+  {
+    key: 'email',
+    title: '亚马逊仓代码',
+    align: 'center',
+    resizable: true
+  },
+  {
+    key: 'email',
+    title: '收货时间(零时区)',
+    align: 'center',
+    resizable: true
+  },
+  {
+    key: 'email',
+    title: '收货时间(市场时区)',
+    align: 'center',
+    resizable: true
+  }
+  // {
+  //   key: 'userStatus',
+  //   title: '状态',
+  //   align: 'center',
+  //   render: row => {
+  //     if (row.userStatus) {
+  //       const tagTypes: Record<UserManagement.UserStatusKey, NaiveUI.ThemeColor> = {
+  //         '1': 'success',
+  //         '2': 'error',
+  //         '3': 'warning',
+  //         '4': 'default'
+  //       };
+
+  //       return <NTag type={tagTypes[row.userStatus]}>{userStatusLabels[row.userStatus]}</NTag>;
+  //     }
+  //     return <span></span>;
+  //   }
+  // }
+]) as Ref<DataTableColumns<UserManagement.User>>;
+
+const pagination: PaginationProps = reactive({
+  page: 1,
+  pageSize: 10,
+  showSizePicker: true,
+  pageSizes: [10, 15, 20, 25, 30],
+  onChange: (page: number) => {
+    pagination.page = page;
+  },
+  onUpdatePageSize: (pageSize: number) => {
+    pagination.pageSize = pageSize;
+    pagination.page = 1;
+  }
+});
+
+function init() {
+  getTableData();
+}
+
+// 初始化
+init();
+</script>
+
+<style scoped>
+.searchPannel {
+  padding: 0px 0 15px 0;
+  display: flex;
+}
+</style>
